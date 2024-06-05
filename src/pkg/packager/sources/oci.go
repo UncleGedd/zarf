@@ -145,11 +145,13 @@ func (s *OCISource) LoadPackageMetadata(dst *layout.PackagePaths, wantSBOM bool,
 			spinner.Success()
 		}
 
-		if err := ValidatePackageSignature(dst, s.PublicKeyPath); err != nil {
-			if errors.Is(err, ErrPkgSigButNoKey) && skipValidation {
-				message.Warn("The package was signed but no public key was provided, skipping signature validation")
-			} else {
-				return pkg, nil, err
+		if !skipValidation {
+			if err := ValidatePackageSignature(dst, s.PublicKeyPath); err != nil {
+				if errors.Is(err, ErrPkgSigButNoKey) {
+					message.Warn("The package was signed but no public key was provided, skipping signature validation")
+				} else {
+					return pkg, nil, err
+				}
 			}
 		}
 	}
